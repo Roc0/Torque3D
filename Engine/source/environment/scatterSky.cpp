@@ -82,13 +82,6 @@ const F32 ScatterSky::smEarthRadius = (6378.0f * 1000.0f);
 const F32 ScatterSky::smAtmosphereRadius = 200000.0f;
 const F32 ScatterSky::smViewerHeight = 1.0f;
 
-GFXImplementVertexFormat( ScatterSkyVertex )
-{
-   addElement( "POSITION", GFXDeclType_Float3 );
-   addElement( "NORMAL", GFXDeclType_Float3 );
-   addElement( "COLOR", GFXDeclType_Color );
-}
-
 ScatterSky::ScatterSky()
 {
    mPrimCount = 0;
@@ -637,12 +630,13 @@ void ScatterSky::prepRenderImage( SceneRenderState *state )
       return;
 
    // Regular sky render instance.
-   ObjectRenderInst *ri = state->getRenderPass()->allocInst<ObjectRenderInst>();
+   RenderPassManager* renderPass = state->getRenderPass();
+   ObjectRenderInst *ri = renderPass->allocInst<ObjectRenderInst>();
    ri->renderDelegate.bind( this, &ScatterSky::_render );
    ri->type = RenderPassManager::RIT_Sky;
    ri->defaultKey = 10;
    ri->defaultKey2 = 0;
-   state->getRenderPass()->addInst( ri );
+   renderPass->addInst(ri);
 
    // Debug render instance.
    /*
@@ -685,13 +679,13 @@ void ScatterSky::prepRenderImage( SceneRenderState *state )
       mMatrixSet->setSceneProjection(GFX->getProjectionMatrix());
       mMatrixSet->setWorld(GFX->getWorldMatrix());
 
-      ObjectRenderInst *ri = state->getRenderPass()->allocInst<ObjectRenderInst>();
+      ObjectRenderInst *ri = renderPass->allocInst<ObjectRenderInst>();
       ri->renderDelegate.bind( this, &ScatterSky::_renderMoon );
       ri->type = RenderPassManager::RIT_Sky;
       // Render after sky objects and before CloudLayer!
       ri->defaultKey = 5;
       ri->defaultKey2 = 0;
-      state->getRenderPass()->addInst( ri );
+      renderPass->addInst(ri);
    }
 }
 
@@ -760,7 +754,7 @@ void ScatterSky::_initVBIB()
    F32 zOffset = -( mCos( mSqrt( 1.0f ) ) + 0.01f );
 
    mVB.set( GFX, mVertCount, GFXBufferTypeStatic );
-   ScatterSkyVertex *pVert = mVB.lock();
+   GFXVertexP *pVert = mVB.lock();
    if(!pVert) return;
 
    for ( U32 y = 0; y < vertStride; y++ )
